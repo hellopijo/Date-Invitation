@@ -3,83 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Date Invitation</title>
-    <!-- Fixed typo in URL: tailwindcss -->
+    <title>Date Invitation (React)</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel (to translate JSX) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     <style>
-        body{background-color: #fce7f3; font-family: sans-serif;}
-        .glass-card{background: rgba(255,255,255,0.9); border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        /* Add simple animation for images */
-        .img-hover:hover { transform: scale(1.05); }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('image/fatin6.png');
+            background-size: cover;
+            background-position: center bottom;
+            background-attachment: fixed;
+        }
+        
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 500ms, transform 500ms;
+        }
+        
+        /* Animation Utility */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-<body class="flex justify-center items-center min-h-screen p-4">
     <div id="root"></div>
 
-    <!-- Fixed typo: type="text/babel" -->
     <script type="text/babel">
-        const {useState, useEffect} = React;
+        const { useState, useEffect } = React;
 
-        // Data
+        // --- DATA CONFIGURATION ---
         const timelineData = [
-            { time: "10:00", desc: "Naik LRT 🚅"},
-            { time: "12:00", desc: "Meet at KL Sentral 📍"},
-            { time: "12:30 - 13:30", desc: "Game On 🎮"},
-            { time: "14:00", desc: "Eat (Your Choice) 🍽️"},
-            { time: "15:00 - Forever", desc: "Not planned (hehe) ❤️"},
+            { time: "10:00", desc: "Naik LRT 🚅" },
+            { time: "11:00", desc: "Meet at KL Sentral 📍" },
+            { time: "12:00 - 14:00", desc: "Game On 🎮" },
+            { time: "14:30 - 15.30", desc: "EAT (Your Choice) 🍽️" },
+            { time: "16.00 - Forever", desc: "Not planned yet (hehe) ❤️" }
         ];
 
-        // I added placeholders for images in case your local files aren't found yet
         const foodOptions = [
-            { id: "Mee Tarik", img: "image/meetarik.jpg", fallback: "https://placehold.co/600x400?text=Mee+Tarik", label: "🍜 Mee Tarik" },
-            { id: "Cat Cafe", img: "image/catcafe.jpg", fallback: "https://placehold.co/600x400?text=Cat+Cafe", label: "🐈 Cat Cafe" },
-            { id: "Shabuyaki", img: "image/shabuyaki.jpg", fallback: "https://placehold.co/600x400?text=Shabuyaki", label: "🍣 Shabuyaki" },
+            { id: "Mee Tarik", img: "image/meetarik.jpg", label: "🍜 Mee Tarik" },
+            { id: "Cat Cafe", img: "image/catcafe.jpg", label: "🐱 Cat Cafe" },
+            { id: "Shabuyaki", img: "image/shabuyaki.jpg", label: "🍲 Shabuyaki" }
         ];
 
-        // Button Component
-        const Button = ({ onClick, children, className, style, onMouseEnter}) => (
+        // --- COMPONENTS ---
+
+        const Button = ({ onClick, children, className, style, onMouseEnter }) => (
             <button 
-                onClick={onClick} 
-                onMouseEnter={onMouseEnter} 
-                style={style} 
-                className={`bg-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition-transform ${className}`}>
+                onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                style={style}
+                className={`bg-indigo-400 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-500 hover:scale-105 transition-all transform duration-200 ${className}`}>
                 {children}
             </button>
         );
 
+        const TimelineItem = ({ time, desc }) => (
+            <div className="relative pl-8 pb-8 border-l-2 border-indigo-200 last:pb-0">
+                <div className="absolute -left-[9px] top-0 w-4 h-4 bg-indigo-400 rounded-full border-2 border-white shadow"></div>
+                <div className="font-bold text-indigo-500 text-sm">{time}</div>
+                <div className="text-gray-700 font-medium mt-1">{desc}</div>
+            </div>
+        );
+
         const App = () => {
-            // STATE
             const [step, setStep] = useState(1);
             const [foodChoice, setFoodChoice] = useState("");
-            const [noBtnPos, setNoBtnPos] = useState({ x: 0, y: 0 });
+            const [noBtnPosition, setNoBtnPosition] = useState({ x: 0, y: 0 });
 
-            // LOGIC 1: Run away button
+            // Runaway Button Logic
             const moveButton = () => {
-                setNoBtnPos({ 
-                    x: Math.random() * 200 - 100, 
-                    y: Math.random() * 200 - 100 
-                });
+                const x = Math.random() * 200 - 100;
+                const y = Math.random() * 200 - 100;
+                setNoBtnPosition({ x, y });
             };
 
-            // LOGIC 2: Save food choice
             const handleFoodSelect = (choice) => {
                 setFoodChoice(choice);
                 setStep(4);
             };
 
-            // LOGIC 3: Send WhatsApp
             const sendWhatsApp = () => {
-                const phone = "601111361085"; 
-                const msg = `Hi! I accept! ❤️ Choices: LRT, ${foodChoice}, Game On.`;
-                window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                const phoneNumber = "601111361085"; 
+                const message = `Hi Pookie, Jom Date!!! ❤️\n\nSaya nak makan dekat:\n ${foodChoice}\n`;
+                window.location.href = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
             };
 
-            // LOGIC 4: Load Tenor GIF script
+            // Fix: Load Tenor Script via useEffect instead of inline script tag to avoid syntax errors
             useEffect(() => {
                 if (step === 2) {
                     const script = document.createElement('script');
@@ -87,52 +128,62 @@
                     script.async = true;
                     document.body.appendChild(script);
                     return () => {
-                        if(document.body.contains(script)) {
-                            document.body.removeChild(script);
-                        }
-                    };
+                        // Cleanup script when leaving step 2
+                        document.body.removeChild(script);
+                    }
                 }
             }, [step]);
 
-            // --- RENDER FUNCTIONS (Moved INSIDE App so they work) ---
+            // --- SCREENS ---
             
+            // Screen 1: Intro
             const renderIntro = () => (
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold mb-4 text-pink-600">Will you go on a date with me? 🥜</h1>
-                    <div className="flex flex-col items-center gap-4 h-32 justify-center relative">
+                <div className="text-center animate-fade-in">
+                    <h1 className="text-3xl font-extrabold text-indigo-900 mb-4">Will you go on a date with me peanut? 🥜</h1>
+                    <p className="text-gray-600 mb-8">Tapi kalau taknak takpelaa :(</p>
+                    <div className="flex flex-col items-center gap-4 relative h-32">
                         <Button onClick={() => setStep(2)}>YESS NAKKKKK</Button>
                         <Button 
-                            className="bg-gray-400 absolute transition-all duration-200"
-                            style={{ transform: `translate(${noBtnPos.x}px, ${noBtnPos.y}px)` }}
+                            className="bg-gray-400 hover:bg-gray-500 absolute transition-all duration-200"
+                            style={{ transform: `translate(${noBtnPosition.x}px, ${noBtnPosition.y}px)` }}
                             onMouseEnter={moveButton}
-                            onClick={moveButton}>
+                            onClick={moveButton} // Just in case on mobile tap
+                        >
                             Dont want
                         </Button>
                     </div>
                 </div>
             );
 
+            // Screen 2: Transport
             const renderTransport = () => (
-                <div className="text-center w-full">
-                    <h2 className="text-2xl font-bold mb-4 text-indigo-600">Kita akan NAIKKK LRT! 🚅</h2>
-                    <div className="tenor-gif-embed rounded-xl overflow-hidden mb-4 shadow-lg" data-postid="20501901" data-share-method="host" data-width="100%" data-aspect-ratio="1.7"></div> 
-                    <Button onClick={() => setStep(3)} className="mt-4">Next</Button>
+                <div className="text-center animate-fade-in">
+                    <h2 className="text-2xl font-bold text-indigo-800 mb-2">Kita akan NAIKKK!!!!</h2>
+                    <h3 className="text-4xl font-black text-indigo-500 mb-6 tracking-widest">L R T</h3>
+                    
+                    <div className="rounded-xl overflow-hidden shadow-lg mb-6 mx-auto max-w-xs">
+                        <div className="tenor-gif-embed" data-postid="20501901" data-share-method="host" data-aspect-ratio="1.77778" data-width="100%"></div> 
+                    </div>
+                    
+                    <Button onClick={() => setStep(3)}>Next <i className="ph-bold ph-arrow-right inline align-middle"></i></Button>
                 </div>
             );
 
+            // Screen 3: Food Choice
             const renderFood = () => (
-                <div className="text-center w-full">
-                    <h2 className="text-2xl font-bold mb-6 text-indigo-600">What are you craving?</h2>
-                    <div className="flex flex-col gap-4">
+                <div className="text-center animate-fade-in w-full">
+                    <h2 className="text-2xl font-bold text-indigo-900 mb-2">Peanut Craving Apa?</h2>
+                    <p className="text-gray-500 mb-6 text-sm">Tap an image to choose</p>
+
+                    <div className="grid grid-cols-1 gap-4">
                         {foodOptions.map((food) => (
-                            <div key={food.id} onClick={() => handleFoodSelect(food.id)} 
-                                 className="relative h-24 rounded-xl overflow-hidden cursor-pointer shadow-md group transition-all hover:ring-4 ring-pink-300">
-                                <img 
-                                    src={food.img} 
-                                    onError={(e) => e.target.src = food.fallback} /* Fallback if local image fails */
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-xl backdrop-blur-[1px] group-hover:backdrop-blur-none transition-all">
-                                    {food.label}
+                            <div 
+                                key={food.id}
+                                onClick={() => handleFoodSelect(food.id)}
+                                className="relative h-28 rounded-xl overflow-hidden cursor-pointer group shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-indigo-400">
+                                <img src={food.img} alt={food.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                    <span className="text-white text-xl font-bold drop-shadow-md">{food.label}</span>
                                 </div>
                             </div>
                         ))}
@@ -140,39 +191,51 @@
                 </div>
             );
 
+            // Screen 4: Activity
+            const renderActivity = () => (
+                <div className="text-center animate-fade-in">
+                    <h2 className="text-2xl font-bold text-indigo-900 mb-4">Activity Plan</h2>
+                    <p className="text-gray-600 mb-2">We will go to....</p>
+                    <div className="bg-indigo-100 p-6 rounded-2xl mb-8 border-2 border-indigo-200">
+                        <p className="text-3xl font-black text-indigo-600">GAME ONNN 🎮</p>
+                    </div>
+                    <Button onClick={() => setStep(5)}>YEAYYYY</Button>
+                </div>
+            );
+
+            // Screen 5: Summary
             const renderSummary = () => (
-                <div className="text-center w-full">
-                    <h2 className="text-2xl font-bold mb-6 text-pink-500">It's a Date! ❤️</h2>
-                    <div className="bg-white rounded-lg p-4 mb-6 text-left shadow-inner max-h-[300px] overflow-y-auto">
-                        {timelineData.map((item, i) => (
-                            <div key={i} className="mb-4 last:mb-0 border-l-4 border-indigo-200 pl-4">
-                                <div className="font-bold text-indigo-500">{item.time}</div>
-                                <div className="text-gray-700">{item.desc.includes("Eat") ? `EAT: ${foodChoice}` : item.desc}</div>
-                            </div>
+                <div className="text-center animate-fade-in w-full">
+                    <h2 className="text-2xl font-bold text-indigo-900 mb-6">It's a Date Peanut! ❤️</h2>
+                    
+                    <div className="bg-white/50 rounded-xl p-6 mb-8 text-left shadow-inner">
+                        {timelineData.map((item, index) => (
+                            <TimelineItem 
+                                key={index} 
+                                time={item.time} 
+                                desc={item.desc.includes("EAT") ? ` ${foodChoice} 🍽️` : item.desc} 
+                            />
                         ))}
                     </div>
-                    <Button onClick={sendWhatsApp} className="bg-green-500 hover:bg-green-600 w-full flex items-center justify-center gap-2">
-                        <span>Confirm on WhatsApp</span>
+
+                    <Button onClick={sendWhatsApp} className="w-full bg-green-500 hover:bg-green-600">
+                        <i className="ph-fill ph-whatsapp-logo text-xl align-middle mr-2"></i>
+                        Tell me when you done
                     </Button>
                 </div>
             );
 
-            // MAIN RETURN
+            // --- MAIN RENDER ---
             return (
-                <div className="glass-card w-full max-w-md min-h-[500px] flex flex-col justify-center items-center transition-all duration-300">
+                <div className="glass-card w-full max-w-md p-8 rounded-3xl min-h-[500px] flex flex-col justify-center items-center relative transition-all duration-500">
                     {step === 1 && renderIntro()}
                     {step === 2 && renderTransport()}
                     {step === 3 && renderFood()}
-                    {step === 4 && (
-                        <div className="text-center">
-                            <h2 className="text-3xl font-bold mb-4 animate-bounce text-indigo-600">GAME ONNN 🎮</h2>
-                            <Button onClick={() => setStep(5)}>YEAYYYY</Button>
-                        </div>
-                    )}
+                    {step === 4 && renderActivity()}
                     {step === 5 && renderSummary()}
                 </div>
             );
-        }; 
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
