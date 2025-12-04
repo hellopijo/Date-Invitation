@@ -62,6 +62,25 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // --- 1. SOUND CONFIGURATION ---
+        // We define these outside the component so they load once
+        const hoverSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3");
+        const clickSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3");
+        
+        // Lower volume so it's not too loud
+        hoverSound.volume = 0.2; 
+        clickSound.volume = 0.5;
+
+        const playHover = () => {
+            hoverSound.currentTime = 0; // Reset sound to start
+            hoverSound.play().catch(e => console.log("Interaction needed first"));
+        };
+
+        const playClick = () => {
+            clickSound.currentTime = 0;
+            clickSound.play();
+        };
+
         // --- DATA CONFIGURATION ---
         const timelineData = [
             { time: "10:00", desc: "Naik LRT 🚅" },
@@ -79,10 +98,17 @@
 
         // --- COMPONENTS ---
 
+        // 2. UPDATED BUTTON COMPONENT
         const Button = ({ onClick, children, className, style, onMouseEnter }) => (
             <button 
-                onClick={onClick}
-                onMouseEnter={onMouseEnter}
+                onClick={(e) => {
+                    playClick(); // Play sound
+                    onClick(e);  // Run original logic
+                }}
+                onMouseEnter={(e) => {
+                    playHover(); // Play sound
+                    if (onMouseEnter) onMouseEnter(e); // Run original logic (like the runaway button)
+                }}
                 style={style}
                 className={`bg-indigo-400 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-indigo-500 hover:scale-105 transition-all transform duration-200 ${className}`}>
                 {children}
@@ -110,6 +136,7 @@
             };
 
             const handleFoodSelect = (choice) => {
+                playClick(); // Add click sound to food selection too
                 setFoodChoice(choice);
                 setStep(4);
             };
@@ -120,7 +147,6 @@
                 window.location.href = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
             };
 
-            // Fix: Load Tenor Script via useEffect instead of inline script tag to avoid syntax errors
             useEffect(() => {
                 if (step === 2) {
                     const script = document.createElement('script');
@@ -128,7 +154,6 @@
                     script.async = true;
                     document.body.appendChild(script);
                     return () => {
-                        // Cleanup script when leaving step 2
                         document.body.removeChild(script);
                     }
                 }
@@ -147,7 +172,7 @@
                             className="bg-gray-400 hover:bg-gray-500 absolute transition-all duration-200"
                             style={{ transform: `translate(${noBtnPosition.x}px, ${noBtnPosition.y}px)` }}
                             onMouseEnter={moveButton}
-                            onClick={moveButton} // Just in case on mobile tap
+                            onClick={moveButton} 
                         >
                             Dont want
                         </Button>
@@ -180,6 +205,7 @@
                             <div 
                                 key={food.id}
                                 onClick={() => handleFoodSelect(food.id)}
+                                onMouseEnter={playHover} // Add hover sound to images too
                                 className="relative h-28 rounded-xl overflow-hidden cursor-pointer group shadow-md hover:shadow-xl transition-all border-2 border-transparent hover:border-indigo-400">
                                 <img src={food.img} alt={food.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
                                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
