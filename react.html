@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Invitation</title>
+    <script src="https://cdn.taillwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body{background-color: #fce7f3;}
+        .glass-card{background: rgba(255,255,255,0.9); border-radius: 24px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    </style>
+</head>
+
+<body class="flex justify-center items-center min-h-screen">
+    <div id="root"></div>
+    <script type="text/babel"">
+        const {useState, useEffect} = React;
+
+        //data
+        const timelineData = [
+            { time: "10:00", desc: "Naik LRT 🚅"},
+            { time: "12:00", desc: "Meet at KL Sentral 📍"},
+            { time: "12:30 - 13:30", desc: "Game On 🎮"},
+            { time: "14:00", desc: "Eat (Your Choice) 🍽️"},
+            { time: "15:00 - Forever", desc: "Not planned (hehe) ❤️"},
+        ];
+
+        const foodOptions = [
+            { id: "Mee Tarik", img: "image/meetarik.jpg", label: "🍜 Mee Tarik" },
+            { id: "Cat Cafe", img: "image/catcafe.jpg", label: "🐈 Cat Cafe" },
+            { id: "Shabuyaki", img: "image/shabuyaki.jpg", label: "🍣 Shabuyaki" },
+        ];
+
+        //component
+        const Button = ({ onClick, children, className, style, onMouseEnter}) => (
+            <button 
+                onClick={onClick} 
+                onMouseEnter={onMouseEnter} 
+                style={style} 
+                className={`bg-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition-transform ${className}`}>
+                {children}
+            </button>
+        );
+
+        const App = () => {
+            // STATE: This remembers what step we are on and what food was picked
+            const [step, setStep] = useState(1);
+            const [foodChoice, setFoodChoice] = useState("");
+            const [noBtnPos, setNoBtnPos] = useState({ x: 0, y: 0 });
+
+            // LOGIC 1: Make the "No" button run away
+            const moveButton = () => {
+                setNoBtnPos({ 
+                    x: Math.random() * 200 - 100, 
+                    y: Math.random() * 200 - 100 
+                });
+            };
+
+            // LOGIC 2: Save food choice and go to next step
+            const handleFoodSelect = (choice) => {
+                setFoodChoice(choice);
+                setStep(4);
+            };
+
+            // LOGIC 3: Send to WhatsApp
+            const sendWhatsApp = () => {
+                const phone = "601111361085"; 
+                const msg = `Hi! I accept! ❤️ Choices: LRT, ${foodChoice}, Game On.`;
+                window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            };
+
+            // LOGIC 4: Load Tenor GIF script only when on Step 2
+            useEffect(() => {
+                if (step === 2) {
+                const script = document.createElement('script');
+                script.src = "https://tenor.com/embed.js";
+                script.async = true;
+                document.body.appendChild(script);
+                return () => document.body.removeChild(script);
+            }
+            return (
+        <div className="glass-card w-full max-w-md min-h-[500px] flex flex-col justify-center items-center">
+            {step === 1 && renderIntro()}
+            {step === 2 && renderTransport()}
+            {step === 3 && renderFood()}
+            {step === 4 && <div className="text-center"><h2 className="text-3xl font-bold mb-4">GAME ONNN 🎮</h2><Button onClick={() => setStep(5)}>YEAYYYY</Button></div>}
+            {step === 5 && renderSummary()}
+        </div>
+    );
+}; // End of App Component
+
+// Render the App to the HTML
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+        }, [step]);
+
+    // SCREEN 1: Intro
+    const renderIntro = () => (
+        <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Will you go on a date with me? 🥜</h1>
+            <div className="flex flex-col items-center gap-4 h-32">
+                <Button onClick={() => setStep(2)}>YESS NAKKKKK</Button>
+                <Button 
+                    className="bg-gray-400 absolute transition-all"
+                    style={{ transform: `translate(${noBtnPos.x}px, ${noBtnPos.y}px)` }}
+                    onMouseEnter={moveButton}>
+                    Dont want
+                </Button>
+            </div>
+        </div>
+    );
+
+    // SCREEN 2: Transport
+    const renderTransport = () => (
+        <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Kita akan NAIKKK LRT! 🚅</h2>
+            <div className="tenor-gif-embed" data-postid="20501901" data-share-method="host" data-width="100%"></div> 
+            <Button onClick={() => setStep(3)} className="mt-4">Next</Button>
+        </div>
+    );
+
+    // SCREEN 3: Food Cards
+    const renderFood = () => (
+        <div className="text-center w-full">
+            <h2 className="text-2xl font-bold mb-6">What are you craving?</h2>
+            <div className="flex flex-col gap-4">
+                {foodOptions.map((food) => (
+                    <div key={food.id} onClick={() => handleFoodSelect(food.id)} 
+                         className="relative h-24 rounded-xl overflow-hidden cursor-pointer shadow-md group">
+                        <img src={food.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform"/>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-xl">
+                            {food.label}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    // SCREEN 5: Summary
+    const renderSummary = () => (
+        <div className="text-center w-full">
+            <h2 className="text-2xl font-bold mb-6">It's a Date! ❤️</h2>
+            <div className="bg-white rounded-lg p-4 mb-6 text-left shadow-inner">
+                {timelineData.map((item, i) => (
+                    <div key={i} className="mb-4 last:mb-0 border-l-2 border-indigo-200 pl-4">
+                        <div className="font-bold text-indigo-500">{item.time}</div>
+                        <div>{item.desc.includes("EAT") ? `EAT: ${foodChoice}` : item.desc}</div>
+                    </div>
+                ))}
+            </div>
+            <Button onClick={sendWhatsApp} className="bg-green-500 w-full">Confirm on WhatsApp</Button>
+        </div>
+    );
+
+    </script>
+</body>
+</html>
